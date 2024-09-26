@@ -14,7 +14,7 @@ class Bandit():
 
         self.rewards_at_step = np.zeros(self.n_steps)
         self.optimal_reward_at_step = np.zeros(self.n_steps)
-        self.H = np.zeros(self.n_steps)
+        self.H = np.zeros(self.n_actions)
 
     def run(self):
         np.random.seed(self.seed)
@@ -39,7 +39,7 @@ class Bandit():
                 alpha = self.alpha if self.alpha is not None else 1 / action_counts[action]
 
                 if self.use_gradient:
-                    self.__update_preference(action, alpha, reward)
+                    self.__update_preferences(action, alpha, reward, step)
                 else:
                     # Update estimate using sample average
                     q_estimates[action] += alpha * (reward - q_estimates[action])
@@ -63,7 +63,7 @@ class Bandit():
 
         return np.argmax(q_estimates)
 
-    def __update_preferences(self, action, alpha, current_reward):
+    def __update_preferences(self, action, alpha, current_reward, step):
         action_probs = self.__softmax()
         baseline = self.avg_reward
         for a in range(self.n_actions):
@@ -72,7 +72,7 @@ class Bandit():
             else:
                 self.H[a] -= alpha * (current_reward - baseline) * action_probs[a]
 
-        self.avg_reward += (current_reward - self.avg_reward) / (self.step + 1)
+        self.avg_reward += (current_reward - self.avg_reward) / (step + 1)
 
     def __softmax(self):
         exp_prefs = np.exp(self.H - np.max(self.H)) # for numerical stability
