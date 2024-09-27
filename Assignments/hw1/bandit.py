@@ -1,80 +1,76 @@
 import numpy as np
 
-class Bandit():
-    def __init__(self, n_steps, alpha=None, use_gradient = False, seed = 42):
-        self.alpha = alpha
-        self.use_gradient = use_gradient
+class NonStationaryBandit:
+    def __init__(self, k=10):
+        self.k = k
+        self.q_star = np.zeros(k)
+        
+    def pull(self, arm):
+        return np.random.normal(self.q_star[arm], 1)
+    
+    def update(self):
+        self.q_star += np.random.normal(0, 0.01, self.k)
+    
+    def optimal_action(self):
+        return np.argmax(self.q_star)
 
-        self.n_actions = 10 # Because it's 10-armed so we have 10 possible actions to take at each step. 
-        self.n_steps = n_steps
-        self.n_runs = 2000
-        self.epsilon = 0.1
-        self.std_walk = 0.01
-        self.seed = 42
+def epsilon_greedy(Q, epsilon):
+    if np.random.random() < epsilon:
+        return np.random.randint(len(Q))
+    else:
+        return np.argmax(Q)
 
-        self.rewards_at_step = np.zeros(self.n_steps)
-        self.optimal_reward_at_step = np.zeros(self.n_steps)
-        self.H = np.zeros(self.n_actions)
+def softmax(H, temperature=1.0):
+    exp_H = np.exp(H / temperature - np.max(H / temperature))
+    return exp_H / np.sum(exp_H)
 
-    def run(self):
-        np.random.seed(self.seed)
+def ucb_select(Q, N, t, c):
+    ucb_values = Q + c * np.sqrt(np.log(t + 1) / (N + 1e-5))
+    return np.argmax(ucb_values)
 
-        for run in range(self.n_runs):
-            q_true = np.zeros(self.n_actions)  # True action values
-            q_estimates = np.zeros(self.n_actions)  # Estimated action values
-            action_counts = np.zeros(self.n_actions)
-            self.avg_reward = 0
-
-            for step in range(self.n_steps):
-
-                # Action selection
-                action = self.__action_selection(q_estimates)
-
-                # Receive reward
-                reward = np.random.normal(q_true[action], 1)
-                self.rewards_at_step[step] += reward
-
-                action_counts[action] += 1
-
-                alpha = self.alpha if self.alpha is not None else 1 / action_counts[action]
-
-                if self.use_gradient:
-                    self.__update_preferences(action, alpha, reward, step)
-                else:
-                    # Update estimate using sample average
-                    q_estimates[action] += alpha * (reward - q_estimates[action])
-
-                # Update true action values (random walk)
-                q_true += np.random.normal(0, self.std_walk, self.n_actions)
-                optimal_action = np.argmax(q_true)
-
-                # Logging results
-                self.optimal_reward_at_step[step] += (1 if action == optimal_action else 0)
-
-        return self.rewards_at_step / self.n_runs, self.optimal_reward_at_step / self.n_runs
-
-    def __action_selection(self, q_estimates):
-        if self.use_gradient:
-            action_probs = self.__softmax()
-            return np.random.choice(self.n_actions, p=action_probs)
-
-        if np.random.rand() < self.epsilon: 
-            return np.random.choice(self.n_actions) 
-
-        return np.argmax(q_estimates)
-
-    def __update_preferences(self, action, alpha, current_reward, step):
-        action_probs = self.__softmax()
-        baseline = self.avg_reward
-        for a in range(self.n_actions):
-            if a == action:
-                self.H[a] += alpha * (current_reward - baseline) * (1 - action_probs[a])
-            else:
-                self.H[a] -= alpha * (current_reward - baseline) * action_probs[a]
-
-        self.avg_reward += (current_reward - self.avg_reward) / (step + 1)
-
-    def __softmax(self):
-        exp_prefs = np.exp(self.H - np.max(self.H)) # for numerical stability
-        return exp_prefs/np.sum(exp_prefs)
-
+def run_experiment(num_steps, algorithm, alpha, epsilon, gradient, baseline, ucb_c=None):
+    bandit = NonStationaryBandit()
+    k = bandit.k
+    
+    if gradient:
+        H = np.zeros(k)
+        pi = softmax(H)
+    else:
+        Q = np.zeros(k)
+        N = np.zeros(k)
+    
+    rewards = np.zeros(num_steps)
+    optimal_actions = np.zeros(num_steps, dtype=int)
+    chosen_actions = np.zeros(num_steps, dtype=int)
+    
+    for t in range(num_steps):
+        optimal_action = bandit.optimal_action()
+        optimal_actions[t] = optimal_action
+        
+        if algorithm == 'ucb':
+            action = ucb_select(Q, N, t, ucb_c)
+        elif gradient:
+            action = np.random.choice(k, p=pi)
+        else:
+            action = epsilon_greedy(Q, epsilon)
+        
+        chosen_actions[t] = action
+        reward = bandit.pull(action)
+        rewards[t] = reward
+        
+        if gradient:
+            average_reward = np.mean(rewards[:t+1]) if baseline else 0
+            one_hot = np.zeros(k)
+            one_hot[action] = 1
+            H += alpha * (reward - average_reward) * (one_hot - pi)
+            pi = softmax(H)
+        elif algorithm == 'sample_average':
+            N[action] += 1
+            Q[action] += (reward - Q[action]) / N[action]
+        else:  # constant step-size and UCB
+            N[action] += 1
+            Q[action] += alpha * (reward - Q[action])
+        
+        bandit.update()
+    
+    return rewards, optimal_actions, chosen_actions
