@@ -1,49 +1,45 @@
 import numpy as np
-from typing import Set, Tuple
+from typing import Tuple, List
 
 class Environment:
-    def __init__(self, track: np.ndarray, start_positions: Set[Tuple[int, int]], finish_line: Set[Tuple[int, int]]):
+    def __init__(self, track: np.ndarray, start_line: int, start_positions: List[int], finish_line: int, finish_positions: List[int]):
         self.track = track
         self.height, self.width = track.shape
-        self.start_positions = list(start_positions)
-        self.finish_line = finish_line
+        self.start_line = start_line
+        self.start_positions = np.array([(start_line, y) for y in start_positions])
+        self.finish_line = set((finish_line, y) for y in finish_positions)
         self.max_velocity = 5
-        self.slip_probability = 0.1
 
-    def reset(self) -> Tuple[int, int, int, int]:
+    def reset(self) -> np.ndarray:
         pos = self.start_positions[np.random.randint(len(self.start_positions))]
-        return (*pos, 0, 0)  # (x, y, vx, vy)
+        return np.array([*pos, 0, 0])  # (x, y, vx, vy)
     
-    def reward(self, state, action, next_state) -> int:
-        return 100 if self.is_terminal(next_state) else -1
+    def reward(self, is_out_of_bound: bool, is_terminal: bool) -> int:
+        if is_out_of_bound: return -5
+        if is_terminal: return 100
+        return -1
 
-    def is_terminal(self, next_state: Tuple[int, int]) -> bool:
-        return next_state in self.finish_line
+    def is_terminal(self, new_x: int, new_y: int) -> bool:
+        return (new_x, new_y) in self.finish_line
 
-    def is_out_of_bound(self, next_state: Tuple[int, int]):
-        new_x, new_y, _, _ = next_state
-        return new_x < 0 or new_x >= self.height or new_y < 0 or new_y >= self.width or self.track[new_x, new_y] == 0
-
-    def step(self, state: Tuple[int, int, int, int], action: Tuple[int, int]) -> Tuple[Tuple[int, int, int, int], float, bool]:
+    def is_out_of_bound(self, new_x: int, new_y: int):
+        return new_x < 0 or new_x >= self.height or new_y < 0 or new_y >= self.width or self.track[new_x, new_y] == 1
+    
+    def step(self, state: np.ndarray, action: np.ndarray) -> Tuple[np.ndarray, float, bool]:
         x, y, vx, vy = state
         ax, ay = action
 
-        # Apply the stochastic action constraint
-        if np.random.random() < self.slip_probability:
-            ax, ay = 0, 0
-
         # Update velocity
-        new_vx = max(-self.max_velocity, min(self.max_velocity, vx + ax))
-        new_vy = max(-self.max_velocity, min(self.max_velocity, vy + ay))
+        new_vx = np.clip(vx + ax, -self.max_velocity, self.max_velocity)
+        new_vy = np.clip(vy + ay, -self.max_velocity, self.max_velocity)
 
         # Update position
         new_x, new_y = x + new_vx, y + new_vy
-        next_state = (new_x, new_y, new_vx, new_vy)
-        is_out_of_bound = self.is_out_of_bound(next_state)
 
-        reward = self.reward(state, action, next_state)
+        is_out_of_bound = self.is_out_of_bound(new_x, new_y)
+        is_terminal = self.is_terminal(new_x, new_y)
 
-        if is_out_of_bound: 
-            next_state = self.reset()
+        reward = self.reward(is_out_of_bound, is_terminal)
+        next_state = self.reset() if is_out_of_bound else np.array([new_x, new_y, new_vx, new_vy])
 
-        return next_state, reward, self.is_terminal(next_state)  # Continue, -1 reward for each step
+        return next_state, reward, is_terminal
