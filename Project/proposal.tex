@@ -32,36 +32,39 @@ Reinforcement Learning techniques in order to help visualize the mistake that
 racers made to allow better adjustment and practice session. Specifically, we'll
 train an agent that can identify the optimal racing line given a track using
 multiple on-policy and off-policy update methods. That way, we can highlight the
-mistake that the racer made in comparison with the optimal racing line.
+mistake that the racer made in comparison with the optimal racing line. We'll
+also be developing multiple different reinforcement learning methods and
+approaches. We'll compare the performance of each with a baseline model to see
+the improvements and benefit.
 
 \section{Background Related Work}
 
-Following, you should provide the necessary background and discuss related work in the RL literature. This section should also be about a page. Citations should be in BibTeX format \citep{thrun2005probabilistic}. Some approaches have proposed using RL for robot soccer \cite{riedmiller2009reinforcement}.
-
 \section{Technical Approach}
 \subsection{Environment Setup}
-To simulate the racing environment, we'll assume that the environment has an
-idealistic design where there are no elevation or bumps on the track. We'll also
-ignore all types of friction like air friction and terrain. 
+To simulate the racing environment, we're planning to use a simple, single agent
+environment as the training ground. We'll assume that the track has an
+idealistic surface, meaning that it is a flat surface, with no no elevation or
+bumps, that can be represented
+using a 2D matrix. We'll also ignore all types of friction like air friction and terrain. 
 The width of racetrack is kept fixed throughout and the agent can only choose
 the actions that select a fixed value for acceleration and deceleration of the
-car at each time step. There is,
-however, a cap speed which limits the velocity.
-All elements regarding the racecar like tire degradation, inertia, momentum,
+car at each time step. There is, however, a cap speed which limits how fast the
+agent can go. All elements regarding the racecar like tire degradation, inertia, momentum,
 etc. are also ignored. 
 
 In the scenario that the agent failed to take a curve and is thrown off the
 racetrack, the agent will continue from the nearest location on the racetrack in
 the next timestep and the velocity as well as the acceleration is resetted to
-zero. This will required the agents to again increase the acceleration and
-velocity 
+zero. This will required the agents to start all over which will take longer to
+complete the track if the agent was able to perform this curve correctly.
 
-At first, we'll be using the racing car
-environment from gymnasium Python package for simplicity. Then, to add more
-complications into the environment later on, we'll move toward a more flexible
-environment that is more tailored to our specific need.
+We'll be using the racing car environment that comes with Gymnasium, a
+maintained fork of OpenAI's library. There are two types of environments, a
+discrete and continuous. In this project, we're mostly concern with discrete
+environment and will use it through out to test the performance of our models.
 \subsection{Methodology}
 \subsubsection{Baseline}
+For our baseline model, we're planning to use a Monte Carlo's implementation of 
 \subsubsection{Deep Q-Network}
 \subsubsection{Deep Deterministic Q-Network}
 \subsubsection{Proximal Policy Optimization}
