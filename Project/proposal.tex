@@ -1,0 +1,78 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{Reinforcement learning for raceline prediction}
+\author{Joseph Hadidjojo, Tung Pham}
+\date{\vspace{-1em}}
+
+\usepackage{natbib}
+\usepackage{graphicx}
+
+\begin{document}
+
+\maketitle
+
+% for final report only
+%\begin{abstract}
+%A one paragraph high level description of the work. The abstract is typically the first thing someone would read from the paper before deciding whether to continue reading and hence, serves as an advertisement to the reader to read the whole paper. 
+%\end{abstract}
+
+\section{Introduction}
+
+The Formula 1 is a open-wheel single-seater formula racing cars. Its tournament,
+the FIA Formula One World Championship, has been one of the world's premier forms of racing since 1950.
+Participants are all top racers, however, the champions are those that talented
+in choosing the correct racing line at a given turn or track. This put them
+leagues above the others. However, most of these are estimates based on the
+experience of racers and it would be useful for them to be able to see the ideal
+racing line during practice and training.
+
+In this project, we're aiming to solve this problem with the help of
+Reinforcement Learning techniques in order to help visualize the mistake that
+racers made to allow better adjustment and practice session. Specifically, we'll
+train an agent that can identify the optimal racing line given a track using
+multiple on-policy and off-policy update methods. That way, we can highlight the
+mistake that the racer made in comparison with the optimal racing line.
+
+\section{Background Related Work}
+
+Following, you should provide the necessary background and discuss related work in the RL literature. This section should also be about a page. Citations should be in BibTeX format \citep{thrun2005probabilistic}. Some approaches have proposed using RL for robot soccer \cite{riedmiller2009reinforcement}.
+
+\section{Technical Approach / Methodology / Theoretical Framework}
+
+% for proposal
+Describe how you will approach the problem and its technical formulation. Feel free to re-state the basic RL formulas (e.g., if using Q-learning, state the update rule or the formula for what the Q function approximates). 
+
+
+% for final report
+%A detailed description of your problem (with math, notation, algorithms, figures, etc.). Use footnotes to cite links to your code or videos\footnote{All developed source code for this project is available at ...}
+
+\subsection{Tasks}
+
+Subsections are useful for breaking down the problem into sub-parts. For example, you could break down the tasks for your project and list them one by one. 
+
+% for final report
+%\section{Experimental Results / Technical Demonstration}
+
+%A description of how you evaluated or demonstrated your solution.\footnote{a video of the robot doing x y z is available at...} 
+
+% for proposal
+\section{Evaluation}
+
+Describe how you will evaluate your approach/solution. What constitutes success? What metrics will you use? Do you have any preliminary hypothesis that you plan to test? Also, describe the RL domain or environment you plan to use. 
+
+% for final report
+%\section{Conclusion and Future Work}
+
+%A high level summary of what was accomplished, along with a discussion on limitations and avenues for future work (typically 2 to 3 paragraphs). 
+
+
+\section{Timeline and Individual Responsibilities}
+
+State the timeline in terms of weeks and milestones you want to achieve. If working on a team, state what the individual responsibilities are at this point (i.e., who is going to do what, these may of course change over the course of the project). 
+%\cite{short2010no}.
+
+\bibliographystyle{plain}
+\bibliography{references}
+\end{document}
+
