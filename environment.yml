@@ -1,4 +1,4 @@
-name: cs138_env
+prefix: D:/conda-env/cs138_env
 channels:
   - conda-forge
   - defaults
@@ -22,4 +22,3 @@ dependencies:
   - scikit-surprise
   - autograd
   - xgboost
-prefix: /home/joseph280996/.conda/envs/cs138_env
