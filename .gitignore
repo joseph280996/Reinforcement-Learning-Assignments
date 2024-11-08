@@ -7,5 +7,6 @@
 *.log
 *.synctex.gz
 *.zip
-
+*.bbl
+*.blg
 
