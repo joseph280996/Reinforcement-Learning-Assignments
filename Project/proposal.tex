@@ -15,11 +15,6 @@
 
 \maketitle
 
-% for final report only
-%\begin{abstract}
-%A one paragraph high level description of the work. The abstract is typically the first thing someone would read from the paper before deciding whether to continue reading and hence, serves as an advertisement to the reader to read the whole paper. 
-%\end{abstract}
-
 \section{Introduction}
 
 Formula 1 (F1) racing is renowned for the intense precision, skill, and strategy that its drivers bring to the track. In each race, drivers must determine the fastest path around the circuit, or the "racing line," which enables them to maintain optimal speed while negotiating corners and straights. This process is not merely a physical feat; it requires an in-depth understanding of the vehicle's capabilities and a sharp sense of timing. Talented drivers often master the racing line in only a few laps of practice, fine-tuning it to suit their unique driving style and the distinct characteristics of their machinery.
@@ -52,109 +47,110 @@ Reinforcement learning (RL) has seen significant advancements in recent years, e
 A foundational work in deep reinforcement learning is the introduction of the Deep Q-Network (DQN) by Mnih et al. (2015) \cite{mnih2015human}, which achieved human-level performance on Atari games. Although the DQN algorithm primarily focuses on discrete action spaces, it inspired adaptations for continuous and complex environments, such as autonomous driving and racing, where agents must navigate through tracks while balancing speed and control. This approach laid the groundwork for subsequent RL algorithms that could handle the continuous control demands of racing tasks.
 
 \subsection{Racing Agent with Reinforcement Learning}
-In racing, agents often benefit from continuous-action reinforcement learning algorithms, which allow finer control over movement variables such as speed and rotation. The Soft Actor-Critic (SAC) algorithm, introduced by Haarnoja et al. (2018) \cite{haarnoja2018soft}, has been applied in racing simulations for its ability to handle continuous action spaces with entropy regularization. SAC’s exploration techniques are particularly effective for racing environments, where agents must strike a balance between fast exploration of new actions and reliable, safe driving.
+In racing, agents often benefit from continuous-action reinforcement learning algorithms, which allow finer control over movement variables such as speed and rotation. The Soft Actor-Critic (SAC) algorithm, introduced by Haarnoja et al. (2018) \cite{haarnoja2018soft}, is well-known for its ability to handle continuous action spaces with entropy regularization. SAC’s exploration techniques are possibly quite effective for racing environments, where agents must strike a balance between fast exploration of new actions and reliable, safe driving.
 
 \subsection{Using RL for Track Navigation in Self-Driving Cars}
-Another significant contribution to continuous-action reinforcement learning is the Deep Deterministic Policy Gradient (DDPG) algorithm by Lillicrap et al. (2016) \cite{lillicrap2015continuous}. DDPG has shown promise in applications requiring high-precision control, such as car racing simulators, where agents must learn a delicate balance between acceleration, deceleration, and turning. By enabling continuous state and action spaces, DDPG provides a foundation for controlling vehicles in dynamic and high-stakes environments, making it well-suited for racing applications.
+Another significant contribution to continuous-action reinforcement learning is the Deep Deterministic Policy Gradient (DDPG) algorithm by Lillicrap et al. (2016) \cite{lillicrap2015continuous}. DDPG has shown promise in applications requiring high-precision control. By enabling continuous state and action spaces, DDPG provides a foundation for control in dynamic and high-stakes environments, which we believe makes it well-suited for racing agent applications.
 
-\subsection{Autonomous Racing with Model-Based RL}
-While RL is effective in autonomous driving, alternative methods such as model predictive control (MPC) have also been explored for track navigation. Liniger et al. (2015) \cite{liniger2015optimization} presented an optimization-based approach to autonomous racing using MPC for scale RC cars. Although this approach is not based on RL, it highlights key challenges in optimizing a racing line, including precise control over acceleration and rotation. This work provides insights into how racing agents can balance competing objectives, a concept that informs the reward structure and safety constraints of RL-based racing agents.
-
-\subsection{Safe Reinforcement Learning for Autonomous Driving}
-Safety is a critical component in racing tasks, where maintaining control and staying within track boundaries is essential. Saxena et al. (2020) \cite{saxena2020driving} explored safe reinforcement learning techniques for autonomous driving, focusing on avoiding obstacles and remaining on track. Although primarily targeted at general autonomous driving, the concept of safe RL is highly relevant to racing, where agents must learn to avoid actions that could lead to crashes or veering off track. This study serves as a reference for implementing safety constraints within the reward function to encourage responsible driving.
-
-\subsection{Reward Shaping in Simulated Racing Environments}
-In addition to these techniques, reward shaping has been used in racing applications to guide agents toward achieving optimal racing lines. Wurman et al. (2002) \cite{wurman2002racing} explored predictive state representations and reward shaping in racing, showing how carefully designed rewards can encourage the agent to balance speed with safe navigation. Reward shaping will play a key role in this project’s RL framework, ensuring that the agent not only maximizes speed but also stays within track boundaries.
-
-These works collectively underscore the complexity of using RL in racing environments, where agents must navigate high-dimensional, continuous control tasks under safety constraints. By drawing on these established techniques, this project seeks to develop an RL-based racing agent capable of navigating a simplified F1 track while balancing speed and safety, making it accessible as a foundational tool for aspiring racers.
+By drawing on these established techniques, this project seeks to develop an RL-based racing agent capable of navigating a simplified F1 track while balancing speed and safety, making it accessible as a foundational tool for aspiring racers.
 
 
 \section{Technical Approach}
 \subsection{Environment Setup}
-To simulate the racing environment, we'll assume that the environment has an
-idealistic design where the track has a flat surface that can be represented
-using a 2-D matrix. This means that there are no elevation or bumps will be on the track and the width is assumed to be fixed across the track. 
-We'll also ignore all types of friction like air friction and terrain. 
-At each time step, the agent can select an action that affect 1 unit of acceleration in any directions. 
-There is, however, a cap speed which limits how fast the agent can go. 
-To further simplify the environment, all elements regarding the race car like tire degradation, inertia, momentum, etc. are also ignored.
+The agent operates within a racing track environment represented as a 2D continuous space. At each time step \(t\), the agent observes the current state \(s_t\), which includes:
+\begin{itemize}
+    \item Position on the track (\(x, y\)),
+    \item Velocity components (\(v_x, v_y\)),
+    \item Orientation (\(\theta\)).
+\end{itemize}
+
+The agent selects an action \(a_t = [a_{\text{acc}}, a_{\text{rot}}]\), where:
+\begin{itemize}
+    \item \(a_{\text{acc}}\) controls acceleration (\(a_{\text{acc}} > 0\)) or deceleration (\(a_{\text{acc}} < 0\)),
+    \item \(a_{\text{rot}}\) controls rotation, with positive values turning right and negative values turning left.
+\end{itemize}
+
+The environment updates the agent’s state based on these actions and the track's physics, such as track boundaries. Most real-life environmental factors such as friction, elevation, and grip condition will initially be ignored but may be considered in the future. The agent receives a reward \(r_t\) at each step, determined by:
+\begin{enumerate}
+    \item Progress along the track, proportional to minimizing lap or sector times.
+    \item Penalties for leaving the track boundaries.
+\end{enumerate}
+
+The agent learns to balance the objectives of speed and control, gradually improving its policy over training episodes.
 
 \subsection{Methodology}
-In this project, we'll incorporate a number of Reinforcement learning methods and algorithm and conduct experiments in our developed environment discussed above.
-We're aiming to use SARSA, Q-Learning, deep Q-Learning (DQL), Deep Deterministic Policy Gradient (DDPG), and Proximal Policy Optimization (PPO) algorithms to train our agents.
 
-\subsubsection{Q-Learning}
-In Sutton and Barton\cite{sutton-barton-rl}, the off-policy Q-Learning update formula is given as follows:
-\[
-Q(S,A)\leftarrow Q(S,A) + \alpha[R+\gamma max_a Q(S',a) - Q(S,A)]
-\]
+To optimize the agent’s behavior, we leverage reinforcement learning techniques, including Deep Q-Networks (DQN) and Deep Deterministic Policy Gradient (DDPG). Each method builds upon fundamental principles of RL, such as the Bellman equation and policy optimization.
 
-However, the original Q-Learning requires storage of all the possible state in the Q-table leading to large consumption of memory resource. 
-\subsubsection{Deep Q-Learning}
-To tackle the storage limitation of traditional Q-Learning, the Deep Learning element was introduced into learning and predicting the Q value. TD Target, which is the value used to train the neural network on, is defined as:
-\[
-R+\gamma max_a Q(S',a)
-\]
+\subsubsection{Q-Learning and Deep Q-Learning}
 
-To evaluate the training performance, TD error, formally defined as the difference between TD Target and the former Q-value estimation, is used as the loss function:
+Q-learning is a value-based reinforcement learning algorithm that seeks to learn the optimal action-value function \(Q^*(s, a)\) using the Bellman equation:
 \[
-R+\gamma max_a Q(S',a) - Q(S,A)
+Q^*(s, a) = r + \gamma \max_a Q^*(s', a),
 \]
-\subsubsection{Deep Deterministic Policy Gradient}
-DDPG is a combination of DQN and deterministic policy gradient. It has an actor
-network, which will handle predicting an action by learning the policy, and
-critic network, which will learn the value of Q and handle predicting next Q
-value\cite{lillicrap2015continuous}. 
+where \(s'\) is the next state, and \(\gamma\) is the discount factor.
 
-Lilicrap et al, gives a formal updated of the actor policy by following sampled policy gradient \cite{lillicrap2015continuous}
+The algorithm iteratively updates the Q-values using \cite{sutton-barton-rl}:
 \[
-  \nabla_{\omega'} J \approx \frac{1}{N} \sum_i \nabla_{\omega} Q(s,
-  a|\theta^Q)|_{s=s_i,a=\mu(s|\theta^{\mu})} \nabla_{\theta^{\mu}}
-  \mu(s|\theta^{\mu})|_{s=s_i}
+Q(s, a) \leftarrow Q(s, a) + \alpha \left[ r + \gamma \max_a Q(s', a) - Q(s, a) \right],
 \]
+where \(\alpha\) is the learning rate. This simple, table-based approach works well in discrete environments with small state and action spaces. However, Q-learning has significant limitations when applied to complex environments like racing tracks:
+\begin{itemize}
+    \item \textbf{High-dimensional state spaces}: Representing continuous states (e.g., positions, velocities, and orientations) as discrete states leads to a combinatorial explosion in the size of the Q-table.
+    \item \textbf{Continuous action spaces}: Q-learning requires discrete actions, making it unsuitable for tasks requiring fine-grained control over continuous variables like acceleration and rotation.
+    \item \textbf{Inefficient learning}: In large state-action spaces, learning becomes computationally expensive, and generalization across similar states is not possible.
+\end{itemize}
 
-And the critic network is updated by minimizing the loss function
-\cite{lillicrap2015continuous}
-\[
-  L = \frac{1}{N}\sum_i(y_i - Q(s_i, a_i|\theta^{\mu}))^2
-\]
+These limitations necessitate scalable approaches like Deep Q-Networks\\(DQN) for handling high-dimensional state spaces. 
+DQN extends Q-learning by approximating the Q-function \(Q(s, a)\) with a deep neural network, enabling it to handle large, high-dimensional state spaces. 
+Instead of maintaining a Q-table, DQN uses a neural network parameterized by \(\theta\) to predict \(Q(s, a)\) for each possible action. This makes DQN effective for high-dimensional problems, though it remains limited to discrete action spaces.
 
-Then it creates a copy of both network as target networks and update those
-using soft update $\theta \leftarrow \tau \theta +
-(1-\tau)\theta'$ \cite{lillicrap2015continuous}.
+DQN introduces two key techniques to improve stability and efficiency:
+\begin{itemize}
+    \item \textbf{Experience replay}: The agent stores past transitions \((s, a, r, s')\) in a replay buffer. During training, mini-batches of transitions are sampled randomly, reducing correlations between consecutive updates and improving data efficiency.
+    \item \textbf{Target networks}: A separate target network \(Q(s', a'; \theta^-)\) is used for calculating target Q-values. The parameters \(\theta^-\) are updated periodically to reflect the weights of the current Q-network, reducing the risk of divergence during training.
+\end{itemize}
 
-\subsubsection{SARSA}
-For on-policy SARSA approach, the update formula is very much the same however, instead of measuring based on the optimal actions, it use the next action selected at the next state that it results in to calculate the differences. The formula was given by Sutton and Barton \cite{sutton-barton-rl} as follows:
+To train the Q-network, DQN minimizes the temporal difference (TD) loss:
 \[
-Q(S,A)\leftarrow Q(S,A) + \alpha[R+ \gamma Q(S',a') - Q(S,A)]
+L(\theta) = \mathbb{E}_{(s, a, r, s')} \left[ \left( r + \gamma \max_{a'} Q(s', a'; \theta^-) - Q(s, a; \theta) \right)^2 \right],
 \]
-\subsubsection{Proximal Policy Optimization}
-PPO is considered to be more efficient than SARSA due to its utilization of a network model to represent the policy. This allows it to be independent on the size of the Q-table. 
-One characteristic of PPO is that it prevent large update on the policy due to its cliped objective function\cite{huggingface_dql} which is defined below:
+where:
+\begin{itemize}
+    \item \(\theta\): Represents the parameters (weights) of the current Q-network used to approximate \(Q(s, a)\).
+    \item \(\theta^-\): Represents the parameters of the target Q-network, which are periodically updated to match \(\theta\). The use of \(\theta^-\) ensures stability by decoupling the target computation from the current network’s rapidly changing parameters.
+\end{itemize}
 
+While DQN is effective for high-dimensional discrete action problems, it cannot handle continuous action spaces directly. To overcome this limitation, extensions such as Deep Deterministic Policy Gradient (DDPG) are used for continuous control tasks, as discussed in the next section.
+
+\subsubsection{Deep Deterministic Policy Gradient (DDPG)}
+
+Deep Deterministic Policy Gradient (DDPG) is an actor-critic algorithm designed to handle continuous action spaces, making it particularly suitable for tasks like race line optimization, where fine-grained control over acceleration and rotation is required. DDPG builds on the Deterministic Policy Gradient (DPG) framework and incorporates elements from Deep Q-Networks (DQN) to enable stable training in high-dimensional environments.
+
+DDPG consists of two main networks:
+\begin{itemize}
+    \item \textbf{Critic Network:} The critic network approximates the action-value function, providing an estimate of the expected cumulative reward for a given state-action pair \((s, a)\).
+    \item \textbf{Actor Network:} The actor network outputs the optimal continuous action \(a\) for a given state \(s\), directly mapping states to actions.
+\end{itemize}
+
+These networks are trained simultaneously, with the critic guiding the actor's policy improvement. Additionally, DDPG employs separate target networks for both the critic and actor to stabilize training where they are delayed copies of their corresponding network.
+
+The critic network is updated using the Temporal Difference (TD) error, similar to DQN. This loss minimizes the difference between the predicted Q-value and the target Q-value, ensuring the critic learns accurate action-value estimates.
+
+The actor network is updated by maximizing the expected Q-value as estimated by the critic. The gradient of the policy objective with respect to the actor's parameters \(\theta_\mu\) is \cite{lillicrap2015continuous}:
 \[
-r_t(\theta) = \frac{\pi_{\theta}(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)}
+\nabla_{\theta_\mu} J = \mathbb{E}_{s} \left[ \nabla_a Q(s, a| \theta_Q) \big|_{a=\mu(s)} \nabla_{\theta_\mu} \mu(s | \theta_\mu) \right]
 \]
-\[
-L^{CLIP}(\theta) = \mathbb{E}_{t} \left[ \min \left( 
-    r_t(\theta) A_t, 
-    \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) A_t 
-\right) \right]
-\]
-Where $r_t(\theta)$ is the ratio of change of the new value from the old.
+This update encourages the actor to select actions that maximize the critic’s evaluation, driving the policy toward higher rewards.
+
+DDPG is well-suited for tasks requiring continuous actions because it directly outputs continuous actions, avoiding the need for action discretization. This property makes it an ideal candidate for optimizing race lines, where precise control over acceleration and rotation is crucial.
 
 \subsection{Tasks}
-For our initial task, experiment will be carried out to determine the feasibility to train the agent in the given environment.
+Initially, the experiment will focus on establishing the environment and the feasibility of agent training in the environment.
 
-The racing car environment that comes with Gymnasium, a
-Python's library that comes with multiple predefined environment, will be utilized to escalate the development and testing time. There are two types of environment that is available in this package, discrete and continuous. In this initial work, we're mostly concern with discrete
-environment and will be using it to test the performance of our models.
+The environment will be constructed with great inspiration from Gymnasium's Car Racing environment, in combination with the RocketMeister environment developed by Daniel Brummerloh \cite{rocketmeister2020}.
 
-Then, we'll train the agents using the techniques introduced in Sutton and Barton, Q-Learning and SARSA, as those are more straight forward to develop. We'll then evaluate the performance of the agent.
-
-Once our initial work is fully functioning, we'll then looking into implementing more complex approaches DQL, DDPG, and PPO. We'll then evaluate the performance of these models using the same benchmark that we've used for Q-Learning and SARSA approaches and compare the result obtained.
-
-If time permit, extensions will be made which are but not limited to adding environmental factors like tire degradation, elevation and obstacles, etc; usage of TAMER framework to introduce human reinforcement; or transforming the environment into that of a multi-agent. 
+Following successful construction of the environment, development of the agent implementations using DQN and DDPG will begin. If time and resources permit, further extensions may be developed and incorporated. These extensions may include, but are not limited to: adding environmental factors like tire degradation, elevation and obstacles, etc; usage of TAMER framework to introduce human reinforcement; or transforming the environment into that of a multi-agent. 
 
 \section{Evaluation}
 
@@ -167,7 +163,7 @@ Lap time will serve as a primary metric for evaluating each agent’s efficiency
 Each agent will incur penalties for going out of bounds, emphasizing the importance of maintaining control while optimizing speed. The boundary adherence metric will help determine the agent’s consistency in staying within the track limits, which is crucial for real-world applicability. Frequent boundary violations or excessively aggressive maneuvers will be penalized, guiding the agent toward safer driving behaviors.
 
 \subsection{Method Comparison}
-To evaluate the effectiveness of various reinforcement learning algorithms, each agent will be trained and tested using different methods, such as DQN, DDPG, and potentially others like Q-learning. The reward progression over time for each method will be tracked and compared, providing insights into the learning stability, convergence rates, and overall efficiency of each approach.
+To evaluate the effectiveness of various reinforcement learning algorithms, each agent will be trained and tested using different methods, DQN and DDPG (potentially other methods as well). The reward progression over time for each method will be tracked and compared, providing insights into the learning stability, convergence rates, and overall efficiency of each approach.
 
 \subsection{Track Generalization}
 To assess each agent’s adaptability, evaluations will be conducted on three different race tracks with relatively simple layouts: Monza, Red Bull Ring, and Fuji Speedway. These tracks were chosen for their distinct characteristics, allowing us to test the agent’s ability to generalize its learned racing line strategies across varied track configurations. Performance on each track will be measured independently, focusing on lap times and boundary adherence. This multi-track evaluation will help identify the robustness of each method in handling diverse racing environments.
@@ -175,24 +171,28 @@ To assess each agent’s adaptability, evaluations will be conducted on three di
 By analyzing these metrics across different algorithms and track layouts, this evaluation will provide a comprehensive view of each method’s effectiveness in race line optimization, stability, and adaptability.
 
 
-\section{Individual Responsibilities}
-\subsection{Joseph Hadidjojo}
-\begin{enumerate}
-\item Environmental Setup
-\item Implementing and evaluate SARSA
-\item Implementing and evaluate PPO
-\item Final Report
-\end{enumerate}
-\subsection{Tung Pham}
-\begin{enumerate}
-\item Environmental Setup
-\item Implementing and evaluate Q-Learning 
-\item Implementing and evaluate DQN
-\item Implementing and evaluate DDPG
-\item Final Report
-\end{enumerate}
+\section{Provisional Timeline and Individual Responsibilities}
 
+\subsection{Provisional Timeline}
+\begin{itemize}
+    \item Early - Mid November: Environment Setup \& Methods Implementation
+    \item Mid - Late November/Early December: Methods Experimentation
+    \item Early - Mid December: Evaluation, Report \& Presentation
+\end{itemize}
 
+\subsection{Responsibilities: Joseph Hadidjojo}
+\begin{enumerate}
+    \item Environment Setup
+    \item Implementing DDPG
+    \item Final Report
+\end{enumerate}
+    
+\subsection{Responsibilities: Tung Pham}
+\begin{enumerate}
+    \item Environment Setup
+    \item Implementing DQN
+    \item Final Report
+\end{enumerate}
 
 \bibliographystyle{plain}
 \bibliography{references}
