@@ -1,0 +1,24 @@
+name: cs138_hw3_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - numpy=1.23
+  - scikit-learn==1.4.2
+  - git
+  - pandas==2.2.2
+  - matplotlib==3.8.4
+  - scipy==1.13.0
+  - seaborn==0.13.2
+  - jupytext
+  - pynvim
+  - plotly
+  - python-kaleido
+  - cairosvg
+  - pyperclip
+  - jupyter_client
+  - ipykernel
+  - scikit-surprise
+  - autograd
+  - xgboost
