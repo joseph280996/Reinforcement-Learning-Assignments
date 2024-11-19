@@ -3,22 +3,24 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.10
-  - numpy=1.23
-  - scikit-learn==1.4.2
+  - autograd
+  - cairosvg
   - git
-  - pandas==2.2.2
+  - ipykernel
+  - jupyter_client
+  - jupytext
   - matplotlib==3.8.4
+  - numpy=1.23
+  - pandas==2.2.2
+  - plotly
+  - pynvim
+  - pyperclip
+  - python-kaleido
+  - python=3.10
+  - scikit-learn==1.4.2
+  - scikit-surprise
   - scipy==1.13.0
   - seaborn==0.13.2
-  - jupytext
-  - pynvim
-  - plotly
-  - python-kaleido
-  - cairosvg
-  - pyperclip
-  - jupyter_client
-  - ipykernel
-  - scikit-surprise
-  - autograd
   - xgboost
+  - gymnasium-box2d
+  - swig
